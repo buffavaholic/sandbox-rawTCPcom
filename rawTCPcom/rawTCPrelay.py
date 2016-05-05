@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+
+#This was mostly based off of the github gregvish/chat.py code
+
 from socket import socket, SO_REUSEADDR, SOL_SOCKET
 from asyncio import Task, coroutine, get_event_loop
 
@@ -38,7 +42,7 @@ class Peer(object):
 ##            print(buf)
 ##            self._server.broadcast('%s\t%s' % (self.global_name, buf.decode('utf8')))
             self._server.relay('%s\t%s' % (self.global_name, buf.decode('utf8')),self._sock)       
-class Server(object):
+class rawTcpServer(object):
     def __init__(self, loop, port):
         self.loop = loop
         self._serv_sock = socket()
@@ -55,7 +59,8 @@ class Server(object):
 
     def broadcast(self, message):
 ##        print(list(self._peers))
-        print("sep msg")
+        print("sending msg")
+        print(message)
         for peer in self._peers:
             peer.send(message)
 
@@ -77,9 +82,15 @@ class Server(object):
 ##            print(peer_name[0]=='127.0.0.1')
             #print(peer_sock)
 
+### 
+
 def main():
     loop = get_event_loop()
-    Server(loop, 1234)
+    relayServer = rawTcpServer(loop, 7887)
+    loop.call_later(10,relayServer.broadcast,'test msg \n\r')
+##    input('wait a bit for matlab to connect')
+##    relayServer.broadcast('test external send \n\r')
+##    input('sent msg')
     loop.run_forever()
 
 if __name__ == '__main__':
