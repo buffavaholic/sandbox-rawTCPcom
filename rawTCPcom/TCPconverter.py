@@ -7,10 +7,8 @@ import uuid
 import datetime
 import sys
 import collections
-import copy
+##import copy
 import os
-
-##from smoothie_driver import SmoothieDriver
 
 from socket import socket, SO_REUSEADDR, SOL_SOCKET
 from asyncio import Task, coroutine, get_event_loop
@@ -27,7 +25,7 @@ class WampComponent(wamp.ApplicationSession):
     def onConnect(self):
         """Callback fired when the transport this session will run over has been established.
         """
-        print(datetime.datetime.now(),' - driver_client : WampComponent.onConnect:')
+        print(datetime.datetime.now(),' - TCP translator : WampComponent.onConnect:')
         self.join(u"ot_realm")
 
 
@@ -39,7 +37,7 @@ class WampComponent(wamp.ApplicationSession):
 
         Starts instatiation of robot objects by calling :meth:`otone_client.instantiate_objects`.
         """
-        print(datetime.datetime.now(),' - driver_client : WampComponent.onJoin:')
+        print(datetime.datetime.now(),' - TCP translator : WampComponent.onJoin:')
         print('\n\targs: ',locals(),'\n')
         if not self.factory._myAppSession:
             self.factory._myAppSession = self
@@ -56,16 +54,20 @@ class WampComponent(wamp.ApplicationSession):
             print('\n\targs: ',locals(),'\n')
 ##            print(datetime.datetime.now(),' - TCP-translator : didnt do anything yet')
             try:
+                self.factory._fwdMessage(client_data)
+            except AttributeError:
+                print('ERROR: factory does not have "_fwdMessage" attribute')
+                
+            try:
                 self.factory._handshake(client_data)
             except AttributeError:
                 print('ERROR: factory does not have "_handshake" attribute')
-        def hearSelf(client_data):
-            print(datetime.datetime.now(),' - TCP-translator : WampComponent.called my name:')
-            print('\n\targs: ',locals(),'\n')
+##        def hearSelf(client_data):
+##            print(datetime.datetime.now(),' - TCP-translator : WampComponent.called my name:')
+##            print('\n\targs: ',locals(),'\n')
 
         def fwdMessage(client_data):
             print(datetime.datetime.now(),' - TCP-translator : WampComponent.called my name:')
-            print(datetime.datetime.now(),' - TCP-translator : time to forward the message:')
             print('\n\targs: ',locals(),'\n')
             try:
                 self.factory._fwdMessage(client_data)
@@ -78,22 +80,22 @@ class WampComponent(wamp.ApplicationSession):
 ##        def dispatch_message(client_data):
 ##            """Hook for factory to call dispatch_message()
 ##            """
-##            print(datetime.datetime.now(),' - driver_client : WampComponent.dispatch_message:')
+##            print(datetime.datetime.now(),' - TCP translator : WampComponent.dispatch_message:')
 ##            print('\n\targs: ',locals(),'\n')
 ##            try:
 ##                self.factory._dispatch_message(client_data)
 ##            except AttributeError:
 ##                print('ERROR: factory does not have "_dispatch_message" attribute')
         selfName = 'com.opentrons.'+self.outer.id
-        print(selfName)
+        print(datetime.datetime.now(),' - TCP-translator : client name: {}'.format(selfName))
         yield from self.subscribe(fwdMessage, selfName)
         yield from self.subscribe(handshake, 'com.opentrons.frontend')
-        print(datetime.datetime.now(),' about to publish to driver_handshake')
-        time_string = str(datetime.datetime.now())
-        msg = {'time':time_string, 'type':'com.opentrons.driver_handshake','to':'','from':self.outer.id,'sessionID':self.outer.id}
-        self.publish('com.opentrons.driver_handshake',json.dumps(msg))
+##        print(datetime.datetime.now(),' about to publish to driver_handshake')
+##        time_string = str(datetime.datetime.now())
+##        msg = {'time':time_string, 'type':'com.opentrons.driver_handshake','to':'','from':self.outer.id,'sessionID':self.outer.id}
+##        self.publish('com.opentrons.driver_handshake',json.dumps(msg))
 ##        self.publish('com.opentrons.driver_handshake',"","",'handshake','driver','extend','')
-        print('post publish')
+##        print('post publish')
 ##        yield from self.subscribe(hearSelf,  'com.opentrons.driver_handshake')
         
 ##        yield from self.subscribe(dispatch_message, 'com.opentrons.driver')
@@ -105,7 +107,7 @@ class WampComponent(wamp.ApplicationSession):
         """Callback fired when WAMP session has been closed.
         :param details: Close information.
         """
-        print('driver_client : WampComponent.onLeave:')
+        print('TCP translator : WampComponent.onLeave:')
         print('\n\targs: ',locals(),'\n')
         if self.factory._myAppSession == self:
             self.factory._myAppSession = None
@@ -118,7 +120,7 @@ class WampComponent(wamp.ApplicationSession):
     def onDisconnect(self):
         """Callback fired when underlying transport has been closed.
         """
-        print(datetime.datetime.now(),' - driver_client : WampComponent.onDisconnect:')
+        print(datetime.datetime.now(),' - TCP translator : WampComponent.onDisconnect:')
         asyncio.get_event_loop().stop()
         crossbar_connected = False
         try:
@@ -165,10 +167,10 @@ class TCPtranslator():
             'bootstrapper' : 'com.opentrons.bootstrapper'
         }
 
-        self.clients = {
-            # uuid : 'com.opentrons.[uuid]'
-        }
-        self.max_clients = 4
+##        self.clients = {
+##            # uuid : 'com.opentrons.[uuid]'
+##        }
+##        self.max_clients = 4
 
         self.id = str(uuid.uuid4())
 
@@ -183,6 +185,8 @@ class TCPtranslator():
 
 ##        self.loop = asyncio.get_event_loop()
         self.loop = loop
+
+        self.driverID =''
 
         self.session_factory.session.outer = self
 
@@ -348,11 +352,11 @@ class TCPtranslator():
                             print('TOPIC: ',self.topic)
                             print(datetime.datetime.now(),'url topic: ',self.topic.get(topic))
                             self.session_factory._myAppSession.publish(self.topic.get(topic),json.dumps(msg))
-                        elif topic in self.clients:
-                            print('TO: ',to)
-                            url_topic = 'com.opentrons.'+to
-                            print(datetime.datetime.now(),'url topic: ',url_topic)
-                            self.session_factory._myAppSession.publish(self.clients.get(topic),json.dumps(msg))
+##                        elif topic in self.clients:
+##                            print('TO: ',to)
+##                            url_topic = 'com.opentrons.'+to
+##                            print(datetime.datetime.now(),'url topic: ',url_topic)
+##                            self.session_factory._myAppSession.publish(self.clients.get(topic),json.dumps(msg))
                         elif topic == 'com.opentrons.driver_handshake':
                             print('TOPIC: ',topic)
                             print(datetime.datetime.now(),'url topic: ',topic)
@@ -817,7 +821,7 @@ class Peer(object):
 ##            opic,to,session_id,type_,name,message,param):
             
             self._server._translator.publish(rawtojson['topic'],self._server._translator.driverID,
-                                             self._server._translator.id,rawtojson['type'],
+                                             self.id,rawtojson['type'],
                                              rawtojson['name'],rawtojson['message'],rawtojson['param'])
 ##            self._server._translator.publish('driver',self._server._translator.driverID,self._server._translator.id,'command','smoothie','home',{'X':''})
 ##            self._server.broadcast('%s\t%s' % (self.global_name, cleanMsg))
@@ -865,22 +869,21 @@ class rawTcpServer(object):
     def _server(self):
         while True:
             peer_sock, peer_name = yield from self.loop.sock_accept(self._serv_sock)
+            print(datetime.datetime.now(),' - rawTcpServer : New TCP Client connected')
             peer_sock.setblocking(0)
-##            print(datetime.datetime.now(),' - INITIAL SETUP - publisher, harness, subscriber ','* * '*10)
             peer = Peer(self, peer_sock, peer_name)
             self._peers.append(peer)
-
-            # TRYING THE FOLLOWING IN INSTANTIATE OBJECTS vs here
-            # INITIAL SETUP
             
-##            TCP_trans = TCPtranslator()
+            # Extend handshake to driver_client
+            print(datetime.datetime.now(),' - rawTcpServer : Handshake sent to driver')
+            self._translator.publish('com.opentrons.driver_handshake',self._translator.driverID,self._translator.id,'handshake','driver','message','extend')
 
-##            # point to relay server for TCP translator
-##            TCP_trans.relay = relayServer
+            # Tell client that handshake has been initialized
             time_string = str(datetime.datetime.now())
-            # client ID set on initialization
-            msg = {'time':time_string, 'type':'TCP handshake','to':self._translator.id,'from':'com.opentrons.tcpRelay','sessionID':self._translator.id}
+            msg = {'time':time_string, 'type':'TCP handshake','to':self._translator.id,'from':'com.opentrons.tcpRelay',
+                   'sessionID':self._translator.id,'data':{'name':'TCP relay','message':{'Start-up':'initalized'}}}
             delimMsg = json.dumps(msg) + '\n\r'
+            print(datetime.datetime.now(),' - rawTcpServer : TCP client sent initialization message')
             print(delimMsg.encode())
             peer.send(delimMsg)
 ##            self.broadcast('%s\tconnected!\n\r' % (peer.global_name,))
