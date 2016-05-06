@@ -1,0 +1,7 @@
+# byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# shell script for cron job running
+cronRawTCPcom.sh

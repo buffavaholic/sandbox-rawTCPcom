@@ -829,6 +829,7 @@ class rawTcpServer(object):
         self._serv_sock.setblocking(0)
         self._serv_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self._serv_sock.bind(('',port))
+        # only allow one TCP client to connect
         self._serv_sock.listen(0)
         self._peers = []
         self._translator = translator
@@ -877,6 +878,7 @@ class rawTcpServer(object):
 ##            # point to relay server for TCP translator
 ##            TCP_trans.relay = relayServer
             time_string = str(datetime.datetime.now())
+            # client ID set on initialization
             msg = {'time':time_string, 'type':'TCP handshake','to':self._translator.id,'from':'com.opentrons.tcpRelay','sessionID':self._translator.id}
             delimMsg = json.dumps(msg) + '\n\r'
             print(delimMsg.encode())
