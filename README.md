@@ -6,7 +6,9 @@ This code handles communication between the backend drivers of the
 Opentrons Liquid handler and any clients connecting via a raw TCP/IP 
 websocket and not through autobahn/crossbar.io. This is done in 
 TCPconverter.py which has two primary functions:
+
 -[Raw TCP Server](#RawTCPServer)
+
 -[Autobahn.ws Relay](#AutobahnwsRelay)
 
 
@@ -15,11 +17,14 @@ TCPconverter.py which has two primary functions:
 
 This part, carried out by the rawTcpServer class and Peer subclass, 
 which has 3 functions:
+
 1. Start a TCP server and listen for incoming 
 clients on port 7887 
+
 2. When a client connects, send the client its ID 
 number and then relay any incoming messages to the crossbar.io server 
 using that ID 
+
 3. Send any messages from crossbar addressed to that 
 client ID back to the TCP client.
 
@@ -48,16 +53,17 @@ Because this code is based off of the
 opentrons/sandbox-driver/client_driver.py it requires autobahn v0.10.3
 
 other modules:
--autobahn v0.10.3
--asyncio
--socket
--time
--json
--uuid
--datetime
--sys
--collections
--os
+
+* autobahn v0.10.3
+* asyncio
+* socket
+* time
+* json
+* uuid
+* datetime
+* sys
+* collections
+* os
 
 ---
 ## To do:
