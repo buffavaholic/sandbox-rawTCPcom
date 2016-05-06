@@ -7,8 +7,8 @@ Opentrons Liquid handler and any clients connecting via a raw TCP/IP
 websocket and not through autobahn/crossbar.io. This is done in 
 TCPconverter.py which has two primary functions:
 
-*[Raw TCP Server](#RawTCPServer)
-*[Autobahn.ws Relay](#AutobahnwsRelay)
+* [Raw TCP Server](#RawTCPServer)
+* [Autobahn.ws Relay](#AutobahnwsRelay)
 
 
 ---
