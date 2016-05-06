@@ -8,7 +8,6 @@ websocket and not through autobahn/crossbar.io. This is done in
 TCPconverter.py which has two primary functions:
 
 -[Raw TCP Server](#RawTCPServer)
-
 -[Autobahn.ws Relay](#AutobahnwsRelay)
 
 
@@ -20,11 +19,9 @@ which has 3 functions:
 
 1. Start a TCP server and listen for incoming 
 clients on port 7887 
-
 2. When a client connects, send the client its ID 
 number and then relay any incoming messages to the crossbar.io server 
 using that ID 
-
 3. Send any messages from crossbar addressed to that 
 client ID back to the TCP client.
 

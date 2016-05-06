@@ -52,21 +52,22 @@ class WampComponent(wamp.ApplicationSession):
             """
             print(datetime.datetime.now(),' - TCP-translator : WampComponent.handshake:')
             print('\n\targs: ',locals(),'\n')
-##            print(datetime.datetime.now(),' - TCP-translator : didnt do anything yet')
-            try:
-                self.factory._fwdMessage(client_data)
-            except AttributeError:
-                print('ERROR: factory does not have "_fwdMessage" attribute')
-                
+##            # send handshake response to TCP
+##            try:
+##                self.factory._fwdMessage(client_data)
+##            except AttributeError:
+##                print('ERROR: factory does not have "_fwdMessage" attribute')
+
+            # extract variables/information from handshake    
             try:
                 self.factory._handshake(client_data)
             except AttributeError:
                 print('ERROR: factory does not have "_handshake" attribute')
-##        def hearSelf(client_data):
-##            print(datetime.datetime.now(),' - TCP-translator : WampComponent.called my name:')
-##            print('\n\targs: ',locals(),'\n')
+
 
         def fwdMessage(client_data):
+            """Hook for factory to call _fwdMessage()
+            """
             print(datetime.datetime.now(),' - TCP-translator : WampComponent.called my name:')
             print('\n\targs: ',locals(),'\n')
             try:
@@ -76,7 +77,7 @@ class WampComponent(wamp.ApplicationSession):
             
 
             
-
+##        Maybe put this back in if we want this to do something other than just pass messages
 ##        def dispatch_message(client_data):
 ##            """Hook for factory to call dispatch_message()
 ##            """
@@ -86,22 +87,13 @@ class WampComponent(wamp.ApplicationSession):
 ##                self.factory._dispatch_message(client_data)
 ##            except AttributeError:
 ##                print('ERROR: factory does not have "_dispatch_message" attribute')
+
+        # subscribe to messages to TCP client and frontend        
         selfName = 'com.opentrons.'+self.outer.id
         print(datetime.datetime.now(),' - TCP-translator : client name: {}'.format(selfName))
         yield from self.subscribe(fwdMessage, selfName)
         yield from self.subscribe(handshake, 'com.opentrons.frontend')
-##        print(datetime.datetime.now(),' about to publish to driver_handshake')
-##        time_string = str(datetime.datetime.now())
-##        msg = {'time':time_string, 'type':'com.opentrons.driver_handshake','to':'','from':self.outer.id,'sessionID':self.outer.id}
-##        self.publish('com.opentrons.driver_handshake',json.dumps(msg))
-##        self.publish('com.opentrons.driver_handshake',"","",'handshake','driver','extend','')
-##        print('post publish')
-##        yield from self.subscribe(hearSelf,  'com.opentrons.driver_handshake')
         
-##        yield from self.subscribe(dispatch_message, 'com.opentrons.driver')
-##        print('post yields')
-##        handshake(json.dumps(msg))
-
 
     def onLeave(self, details):
         """Callback fired when WAMP session has been closed.
@@ -133,32 +125,32 @@ class TCPtranslator():
 
     def __init__(self,loop):
         #__init__ VARIABLES FROM HARNESS
-        print(datetime.datetime.now(),' - DriverClient.__init__:')
+        print(datetime.datetime.now(),' - TCPtranslator.__init__:')
         print('\n\targs: ',locals(),'\n')
-        self.driver_dict = {}
-        self.meta_dict = {
-            'drivers' : lambda from_,session_id,name,param: self.drivers(from_,session_id,name,param),
-            'add_driver' : lambda from_,session_id,name,param: self.add_driver(from_,session_id,name,param),
-            'remove_driver' : lambda from_,session_id,name,param: self.remove_driver(from_,session_id,name,param),
-            'callbacks' : lambda from_,session_id,name,param: self.callbacks(from_,session_id,name,param),
-            'meta_callbacks' : lambda from_,session_id,name, param: self.meta_callbacks(from_,session_id,name,param),
-            'set_meta_callback' : lambda from_,session_id,name,param: self.set_meta_callback(from_,session_id,name,param),
-            'add_callback' : lambda from_,session_id,name,param: self.add_callback(from_,session_id,name,param),
-            'remove_callback' : lambda from_,session_id,name,param: self.remove_callback(from_,session_id,name,param),
-            'flow' : lambda from_,session_id,name,param: self.flow(from_,session_id,name,param),
-            'clear_queue' : lambda from_,session_id,name,param: self.clear_queue(from_,session_id,name,param),
-            'connect' : lambda from_,session_id,name,param: self.driver_connect(from_,session_id,name,param),
-            'disconnect' : lambda from_,session_id,name,param: self.driver_disconnect(from_,session_id,name,param),
-            'commands' : lambda from_,session_id,name,param: self.commands(from_,session_id,name,param),
-            'configs' : lambda from_,session_id,name,param: self.configs(from_,session_id,name,param),
-            'set_config' : lambda from_,session_id,name,param: self.set_config(from_,session_id,name,param),
-            'meta_commands' : lambda from_,session_id,name,param: self.meta_commands(from_,session_id,name,param)
-        }
+##        self.driver_dict = {}
+##        self.meta_dict = {
+##            'drivers' : lambda from_,session_id,name,param: self.drivers(from_,session_id,name,param),
+##            'add_driver' : lambda from_,session_id,name,param: self.add_driver(from_,session_id,name,param),
+##            'remove_driver' : lambda from_,session_id,name,param: self.remove_driver(from_,session_id,name,param),
+##            'callbacks' : lambda from_,session_id,name,param: self.callbacks(from_,session_id,name,param),
+##            'meta_callbacks' : lambda from_,session_id,name, param: self.meta_callbacks(from_,session_id,name,param),
+##            'set_meta_callback' : lambda from_,session_id,name,param: self.set_meta_callback(from_,session_id,name,param),
+##            'add_callback' : lambda from_,session_id,name,param: self.add_callback(from_,session_id,name,param),
+##            'remove_callback' : lambda from_,session_id,name,param: self.remove_callback(from_,session_id,name,param),
+##            'flow' : lambda from_,session_id,name,param: self.flow(from_,session_id,name,param),
+##            'clear_queue' : lambda from_,session_id,name,param: self.clear_queue(from_,session_id,name,param),
+##            'connect' : lambda from_,session_id,name,param: self.driver_connect(from_,session_id,name,param),
+##            'disconnect' : lambda from_,session_id,name,param: self.driver_disconnect(from_,session_id,name,param),
+##            'commands' : lambda from_,session_id,name,param: self.commands(from_,session_id,name,param),
+##            'configs' : lambda from_,session_id,name,param: self.configs(from_,session_id,name,param),
+##            'set_config' : lambda from_,session_id,name,param: self.set_config(from_,session_id,name,param),
+##            'meta_commands' : lambda from_,session_id,name,param: self.meta_commands(from_,session_id,name,param)
+##        }
 
-        self.in_dispatcher = {
-            'command': lambda from_,session_id,data: self.send_command(from_,session_id,data),
-            'meta': lambda from_,session_id,data: self.meta_command(from_,session_id,data)
-        }
+##        self.in_dispatcher = {
+##            'command': lambda from_,session_id,data: self.send_command(from_,session_id,data),
+##            'meta': lambda from_,session_id,data: self.meta_command(from_,session_id,data)
+##        }
 
         self.topic = {
             'frontend' : 'com.opentrons.frontend',
@@ -183,7 +175,6 @@ class TCPtranslator():
         self.transport = None
         self.protocol = None
 
-##        self.loop = asyncio.get_event_loop()
         self.loop = loop
 
         self.driverID =''
@@ -192,10 +183,10 @@ class TCPtranslator():
 
         
 
-
-    def dispatch_message(self, message):
-        print(datetime.datetime.now(),' - DriverClient.dispatch_message:')
-        print(datetime.datetime.now(),' - does nothing for now')
+##    Maybe put this back in if we want this to do something other than just pass messages
+##    def dispatch_message(self, message):
+##        print(datetime.datetime.now(),' - TCPtranslator.dispatch_message:')
+##        print(datetime.datetime.now(),' - does nothing for now')
 ##        #print('\n\targs: ',locals(),'\n')
 ##        try:
 ##            dictum = collections.OrderedDict(json.loads(message.strip(), object_pairs_hook=collections.OrderedDict))
@@ -217,35 +208,69 @@ class TCPtranslator():
 ##
 ##
     def handshake(self, data):
-        print(datetime.datetime.now(),' - DriverClient.handshake:')
+        print(datetime.datetime.now(),' - TCPtranslator.handshake:')
         #print('\n\targs: ',locals(),'\n')
 
         data_dict = json.loads(data)
         if isinstance(data_dict, dict):
-            if 'message' in data_dict['data']:
-                print(' data has msg ')
-                if 'result' in data_dict['data']['message']:
-                    print('message has result')
-                    if data_dict['data']['message']['result']=='success':
-                        print(' handshake sucessfull!')
-                        print('set given id from driver')
-                        self.id = data_dict['sessionID']
-                        self.topic['self'] = 'com.opentrons.'+self.id
-                        self.driverID = data_dict['from']
-                        print('try to shake hands??')
-##                        try:                            
-##                        self.session_factory.session.subscribe(self.dispatch_message,self.topic['self'])
-                        self.publish('com.opentrons.driver_handshake','driver',self.id,'handshake','TCP comm','shake','true')
-##                        input('wait for a second')
-##                        self.publish('driver',self.driverID,self.id,'command','smoothie','home',{'X':''})
-##                        except:
-##                            print('handshake shake rejected')
+            if data_dict['to']== self.id:
+                if 'message' in data_dict['data']:
+                    print(' data has msg ')
+                    if 'result' in data_dict['data']['message']:
+                        print('message has result')
+                        if data_dict['data']['message']['result']=='success':
+                            print(' handshake sucessfull!')
+                            print('set given id from driver')
+##                            self.id = data_dict['sessionID']
+                            self.topic['self'] = 'com.opentrons.'+self.id
+                            self.driverID = data_dict['from']
+                            msg = {'time':str(datetime.datetime.now()), 'type':'TCP handshake','to':self.id,'from':'com.opentrons.tcpRelay',
+                               'sessionID':self.id,'data':{'name':'TCP relay','message':{'result':'success'}}}
+                            self.fwdMessage(json.dumps(msg))
+
+                            #send raw message from driver as well
+                            self.fwdMessage(data)
+
+                            #then shake hands---because?
+                            print('Shake hands (just because it is nice?)')
+                            self.publish('com.opentrons.driver_handshake','driver',self.id,'handshake','TCP comm','shake','true')
+
+                        elif data_dict['data']['message']['result']=='already_connected':
+                            msg = {'time':str(datetime.datetime.now()), 'type':'TCP handshake','to':self.id,'from':'com.opentrons.tcpRelay',
+                               'sessionID':self.id,'data':{'name':'TCP relay','message':{'result':'already_connected'}}}
+                            self.fwdMessage(json.dumps(msg))
+
+                            #send raw message from driver as well
+                            self.fwdMessage(data)
+                        else:
+                            print(datetime.datetime.now(),' - TCPtranslator.handshake: FAILED')
+                            # told that handshake failed from driver
+                            msg = {'time':str(datetime.datetime.now()), 'type':'TCP handshake','to':self.id,'from':'com.opentrons.tcpRelay',
+                               'sessionID':self.id,'data':{'name':'TCP relay','message':{'result':'failed'}}}
+                            self.fwdMessage(json.dumps(msg))
+
+                            #send raw message from driver as well
+                            self.fwdMessage(data)
                     else:
-                        print('handshake failed')
+                        print(datetime.datetime.now(),' - TCPtranslator.handshake: ERROR - no handshake result')
+                        # error in handshake method
+                        msg = {'time':str(datetime.datetime.now()), 'type':'TCP handshake','to':self.id,'from':'com.opentrons.tcpRelay',
+                           'sessionID':self.id,'data':{'name':'TCP relay','message':{'result':'ERROR'}}}
+                        self.fwdMessage(json.dumps(msg))
+
+                        #send raw message from driver as well
+                        self.fwdMessage(data)
                 else:
-                    print('no handshake result')
+                    print(datetime.datetime.now(),' - TCPtranslator.handshake: ERROR - no handshake message')
+                    # error in handshake method
+                    msg = {'time':str(datetime.datetime.now()), 'type':'TCP handshake','to':self.id,'from':'com.opentrons.tcpRelay',
+                       'sessionID':self.id,'data':{'name':'TCP relay','message':{'result':'ERROR'}}}
+                    self.fwdMessage(json.dumps(msg))
+
+                    #send raw message from driver as well
+                    self.fwdMessage(data)
             else:
-                print('no message in data')
+                print('reading message to other clients (i.e. web interface)')
         else:
             print('data is not dict')
             
@@ -265,76 +290,11 @@ class TCPtranslator():
                 print('error passing message')
         else:
             print('data is not dict')
-##            if 'from' in data:
-##                print('* data has "from"')
-##                client_id = data_dict['from']
-##                print('client_id: ',client_id)
-##                if client_id in self.clients:
-##                    print('* from is a client')
-##                    if 'data' in data_dict:
-##                        if 'message' in data_dict['data']:
-##                            if 'extend' in data_dict['data']['message']:
-##                                print('handshake called again on client ',client_id,'. We could have done something here to repopulate data')
-##                                self.publish( client_id , client_id , client_id, 'handshake','driver','result','already_connected')
-##                            if 'shake' in data_dict['data']['message']:
-##                                self.publish_client_ids(client_id,client_id)
-##                else:
-##                    print('* from is NOT a client')
-##                    if len(self.clients) > self.max_clients:
-##                        self.publish( 'frontend', '' , '' , 'handshake' , 'driver' , 'result' , 'fail' )
-##                    else:
-##                        if client_id != "":
-##                            self.clients[client_id] = 'com.opentrons.'+client_id
-##                            self.publish( 'frontend' , client_id , client_id, 'handshake', 'driver', 'result','success')
-##                        else:
-##                            self.gen_client_id()
-##            else:
-##                print('* data does NOT have "from"')
-##                self.gen_client_id()
-##
-##            if 'get_ids' in data_dict:
-##                publish_client_ids('','')
-##        else:
-##            self.gen_clien_tid()
-##
-##
-##    def gen_client_id(self):
-##        print(datetime.datetime.now(),' - DriverClient.gen_client_id:')
-##        #print('\n\targs: ',locals(),'\n')
-##        ret_id = ''
-##        if len(self.clients) > self.max_clients:
-##            self.publish( 'frontend', '' , '' , 'handshake' , 'driver' , 'result' , 'fail' )
-##        else:
-##            client_id = str(uuid.uuid4())
-##            self.clients[client_id] = 'com.opentrons.'+client_id
-##            self.publish( 'frontend' , client_id , client_id , 'handshake' , 'driver' , 'result' , 'success' )
-##            ret_id = client_id
-##        return ret_id
 
-
-##    def client_check(self, id_, session_id):
-##        print(datetime.datetime.now(),' - DriverClient.client_check:')
-##        #print('\n\targs: ',locals(),'\n')
-##        if id_ in self.clients:
-##            return True
-##        else:
-##            return False
-##
-##
-##    def publish_client_ids(self, id_, session_id):
-##        print(datetime.datetime.now(),' - DriverClient.publish_client_ids:')
-##        #print('\n\targs: ',locals(),'\n')
-##        if id_ in self.clients:
-##            self.publish( id_ , id_ , session_id, 'handshake' , 'driver' , 'ids' , list(self.clients) )
-##        else:
-##            self.publish( 'frontend' , '' , session_id, 'handshake' , 'driver' , 'ids' , list(self.clients) )
-##        return list(self.clients)
-##
-##
     def publish(self,topic,to,session_id,type_,name,message,param):
         """
         """
-        print(datetime.datetime.now(),' - DriverClient.publish:')
+        print(datetime.datetime.now(),' - TCPtranslator.publish:')
         #print('\n\targs: ',locals(),'\n')
         if self.session_factory is not None and topic is not None and type_ is not None:
             if name is None:
@@ -369,341 +329,9 @@ class TCPtranslator():
             print(datetime.datetime.now(),' - Error: calller, topic, or type_ is None')
 
 
-    # FUNCTIONS FROM HARNESS
-##    def drivers(self, from_, session_id, name, param):
-##        """
-##        name: n/a
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),'- DriverClient.drivers:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_list = list(self.driver_dict)
-##        if name is None:
-##            name = 'None'
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'drivers',return_list)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'drivers',return_list)
-##        return return_list
-##
-##
-##    def add_driver(self, from_, session_id, name, param):
-##        """
-##        name: name of driver to add_driver
-##        param: driver object
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.add_driver:')
-##        #print('\n\targs: ',locals(),'\n')
-##        self.driver_dict[name] = param
-##        return_list = list(self.driver_dict)
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'drivers',return_list)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'drivers',return_list)
-##        return return_list
-##
-##
-##    def remove_driver(self, from_, session_id, name, param):
-##        """
-##        name: name of driver to be driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.remove_driver:')
-##        #print('\n\targs: ',locals(),'\n')
-##        del self.driver_dict[name]
-##        return_list = list(self.driver_dict)
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'drivers',return_list)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'drivers',return_list)
 
-
-##    def callbacks(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.callbacks:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_dict = self.driver_dict[name].callbacks()
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'callbacks',return_dict)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'callbacks',return_dict)
-##        return return_dict
-##
-##
-##    def meta_callbacks(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.meta_callbacks:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_dict = self.driver_dict[name].meta_callbacks()
-##        self.publish(from_,from_,session_id,'driver',name,'meta_callbacks',return_dict)
-##        return return_dict
-##
-##
-##    def set_meta_callback(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: { meta-callback-name : meta-callback-object }
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.set_meta_callback:')
-##        #print('\n\targs: ',locals(),'\n')
-##        if isinstance(param,dict):
-##            return_dict = self.driver_dict.get(name).set_meta_callback(list(param)[0],list(param.values())[0])
-##        else:
-##            return_dict = self.driver_dict.get(name).meta_callbacks()
-##        self.publish(from_,from_,session_id,'driver',name,'meta_callback',return_dict)
-##        return return_dict
-##
-##
-##    def add_callback(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: { callback obj: [messages list] }
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.add_callback:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_dict = self.driver_dict.get(name).add_callback(list(param)[0],list(param.values())[0])
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'callbacks',return_dict)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'callbacks',return_dict)
-##
-##
-##    def remove_callback(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: name of callback to remove
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.remove_callback:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_dict = self.driver_dict[name].remove_callback(param)
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'callbacks',return_dict)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'callbacks',return_dict)
-##        return return_dict
-##
-##
-##    def flow(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.flow:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_dict = self.driver_dict.get(name).flow()
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'flow',return_dict)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'flow',return_dict)
-##        return return_dict
-##
-##
-##    def clear_queue(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.clear_queue:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_dict = self.driver_dict.get(name).clear_queue()
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'labware',name,'clear_queue',return_dict)
-##        else:
-##            self.publish(from_,from_,session_id,'labware',name,'clear_queue',return_dict)
-##        return return_dict
-##
-##
-##    def driver_connect(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.driver_connect:')
-##        #print('\n\targs: ',locals(),'\n')
-##        print('self.driver_dict: ',self.driver_dict)
-##        print('self.driver_dict[',name,']: ',self.driver_dict[name])
-##        self.driver_dict[name].connect(from_,session_id)    # <--- This should lead to on_connection_made callback
-##
-##
-##    def driver_disconnect(self, from_, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.driver_disconnect:')
-##        #print('\n\targs: ',locals(),'\n')
-##        self.driver_dict.get(name).disconnect(from_,session_id) # <--- This should lead to on_connection_lost callback
-##
-##
-##    def commands(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.commands:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_dict = self.driver_dict.get(name).commands()
-##        self.publish(from_,from_,session_id,'driver',name,'commands',return_dict)
-##        return return_dict
-##
-##
-##    def meta_commands(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.meta_commands:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_list = list(self.meta_dict)
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'meta_commands',return_list)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'meta_commands',return_list)
-##        return return_list
-##
-##
-##    def configs(self, from_, session_id, name, param):
-##        """
-##        name: name of driver
-##        param: n/a
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.configs:')
-##        #print('\n\targs: ',locals(),'\n')
-##        return_dict = self.driver_dict.get(name).configs()
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'configs',return_dict)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'configs',return_dict)
-##        return return_dict
-##
-##
-##    def set_config(self, from_, session_id, name, param):
-##        """
-##        name: name
-##        param: { config name : config value }
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.set_config:')
-##        #print('\n\targs: ',locals(),'\n')
-##        if isinstance(param,dict):
-##            self.driver_dict.get(name).set_config(list(param)[0],list(param.values)[0])
-##        return_dict = self.driver_dict.get(name).configs()
-##        if from_ == "":
-##            self.publish('frontend',from_,session_id,'driver',name,'configs',return_dict)
-##        else:
-##            self.publish(from_,from_,session_id,'driver',name,'configs',return_dict)
-##        return return_dict
-##
-##
-##    def meta_command(self, from_, session_id, data):
-##        """
-##
-##        data should be in the form:
-##
-##        {
-##            'name': name,
-##            'message': value
-##        }
-##
-##        where name the name of the driver or None if n/a,
-##
-##        and value is one of two forms:
-##
-##        1. string
-##
-##        2. {command:params}
-##            params --> {param1:value, ... , paramN:value}
-##
-##
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.meta_command:')
-##        #print('\n\targs: ',locals(),'\n')
-##        if isinstance(data, dict):
-##            name = data['name']
-##            value = data['message']
-##            if name in self.driver_dict:
-##                if isinstance(value, dict):
-##                    command = list(value)[0]
-##                    params = value[command]
-##                    try:
-##                        self.meta_dict[command](from_,session_id,name,params)
-##                    except:
-##                        if from_ == "":
-##                            self.publish('frontend',from_,session_id,'driver',name,'error',sys.exc_info())
-##                        else:
-##                            self.publish(from_,from_,session_id,'driver',name,'error',sys.exc_info())
-##                        print(datetime.datetime.now(),' - meta_command error: ',sys.exc_info())
-##                elif isinstance(value, str):
-##                    command = value
-##                    try:
-##                        self.meta_dict[command](from_,session_id,name,None)
-##                    except:
-##                        if from_ == "":
-##                            self.publish('frontend',from_,session_id,'driver',name,'error',sys.exc_info())
-##                        else:
-##                            self.publish(from_,from_,session_id,'driver',name,'error',sys.exc_info())
-##                        print(datetime.datetime.now(),' - meta_command error: ',sys.exc_info())
-##            else:
-##                if isinstance(value, dict):
-##                    command = list(value)[0]
-##                    params = value[command]
-##                    try:
-##                        self.meta_dict[command](from_,session_id,None, params)
-##                    except:
-##                        if from_ == "":
-##                            self.publish('frontend',from_,session_id,'driver',name,'error',sys.exc_info())
-##                        else:
-##                            self.publish(from_,from_,session_id,'driver',name,'error',sys.exc_info())
-##                        print(datetime.datetime.now(),' - meta_command error, name not in drivers: ',sys.exc_info())
-##                elif isinstance(value, str):
-##                    command = value
-##                    try:
-##                        self.meta_dict[command](from_,session_id,None,None)
-##                    except:
-##                        if from_ == "":
-##                            self.publish('frontend',from_,session_id,'driver','None','error',sys.exc_info())
-##                        else:
-##                            self.publish(from_,from_,session_id,'driver','None','error',sys.exc_info())
-##                        print(datetime.datetime.now(),' - meta_command error, name not in drivers: ',sys.exc_info())
-##
-##
-##    def send_command(self, from_, session_id, data):
-##        """
-##        data:
-##        {
-##            'name': name of driver
-##            'message': string or { message : {param:values} } <--- the part the driver cares about
-##        }
-##        """
-##        print(datetime.datetime.now(),' - DriverClient.send_command:')
-##        #print('\n\targs: ',locals(),'\n')
-##        if isinstance(data, dict):
-##            name = data['name']
-##            value = data['message']
-##            if name in self.driver_dict:
-##                try:
-##                    self.driver_dict[name].send_command(from_, session_id, value)
-##                except:
-##                    if from_ == "":
-##                        self.publish('frontend',from_,session_id,'driver',name,'error',sys.exc_info())
-##                    else:
-##                        self.publish(from_,from_,session_id,'driver',name,'error',sys.exc_info())
-##                    print(datetime.datetime.now(),' - send_command error: '+sys.exc_info())
-##            else:
-##                if from_ == "":
-##                    self.publish('frontend',from_,session_id,'driver','None','error',sys.exc_info())
-##                else:
-##                    self.publish(from_,from_,session_id,'driver','None','error',sys.exc_info())
-##                print(datetime.datetime.now(),' - send_command_error, name not in drivers: '+sys.exc_info())
-##
-##
     def _make_connection(self, url_protocol='ws', url_domain='0.0.0.0', url_port=8080, url_path='ws', debug=False, debug_wamp=False):
-        print(datetime.datetime.now(),' - DriverClient._make_connection:')
+        print(datetime.datetime.now(),' - TCPtranslator._make_connection:')
         #print('\n\targs: ',locals(),'\n')
         if self.loop.is_running():
             print('self.loop is running. stopping loop now')
@@ -718,7 +346,7 @@ class TCPtranslator():
 
 
     def connect(self, url_protocol='ws', url_domain='0.0.0.0', url_port=8080, url_path='ws', debug=False, debug_wamp=False, keep_trying=True, period=5):
-        print(datetime.datetime.now(),' - DriverClient.connect:')
+        print(datetime.datetime.now(),' - TCPtranslator.connect:')
         print('\n\targs: ',locals(),'\n')
         if self.transport_factory is None:
             url = url_protocol+"://"+url_domain+':'+str(url_port)+'/'+url_path
@@ -757,16 +385,14 @@ class TCPtranslator():
             
 
     def disconnect(self):
-        print(datetime.datetime.now(),' - DriverClient.disconnect:')
-        #print('\n\targs: ',locals(),'\n')
+        print(datetime.datetime.now(),' - TCPtranslator.disconnect:')
         self.transport.close()
         self.transport_factory = None
 
 
-#This was mostly based off of the github gregvish/chat.py code
 
 
-
+###  This was mostly based off of the github gregvish/chat.py code
 
 class Peer(object):
     def __init__(self, server, sock, name):
@@ -775,18 +401,8 @@ class Peer(object):
         self._sock = sock
         self._server = server
         self.id = self._server._translator.id
-##        self.translator = TCPtranslator(self._server.loop)
-        # point to relay server for TCP translator
-##        self.translator.relay = self._server
-##
-##        self.translator.connect(
-##            url_domain= '0.0.0.0',
-##            url_port=8080
-##            )
-        if self.name[0] == '127.0.0.1':
-            self.global_name = 'com.opentrons.robot_to_tcp'
-        else:
-            self.global_name = 'com.opentrons.tcp_to_robot'
+
+        print(datetime.datetime.now(),' - rawTcpServer: start listening for TCP message:')
         Task(self._peer_handler())
 
     def send(self, data):
@@ -805,29 +421,25 @@ class Peer(object):
     def _peer_loop(self):
         while True:
             buf = yield from self.loop.sock_recv(self._sock, 400000)
+            print(datetime.datetime.now(),' - rawTcpServer: msg from TCP client received:')
             if buf == b'':
                 break
-##            self._server.broadcast('%s: %s' % (self.name, buf.decode('utf8')))
-            #print("new msg")
-##            rawMsg = buf;
-##            msgIn = buf.decode('utf8')
-##            print(buf)
+            
+            # decode and remove delimiter
             buffOut = buf.decode('utf8')
             cleanMsg = buffOut.strip('\n\r')
-##            print(buf)
             print(cleanMsg)
-##            self._server.relay(cleanMsg,self.global_name)
             rawtojson = json.loads(cleanMsg)
-##            opic,to,session_id,type_,name,message,param):
-            
+
+            # send message over to crossbar.io
+            print(datetime.datetime.now(),' - rawTcpServer: sending TCP message to crossbar')
             self._server._translator.publish(rawtojson['topic'],self._server._translator.driverID,
                                              self.id,rawtojson['type'],
                                              rawtojson['name'],rawtojson['message'],rawtojson['param'])
-##            self._server._translator.publish('driver',self._server._translator.driverID,self._server._translator.id,'command','smoothie','home',{'X':''})
-##            self._server.broadcast('%s\t%s' % (self.global_name, cleanMsg))
-##            self._server.relay('%s\t%s' % (self.global_name, buf.decode('utf8')),self._sock)       
+    
 class rawTcpServer(object):
     def __init__(self, loop, port, translator):
+        print(datetime.datetime.now(),' - rawTcpServer: Initalize the TCP server')
         self.loop = loop
         self._serv_sock = socket()
         self._serv_sock.setblocking(0)
@@ -841,24 +453,28 @@ class rawTcpServer(object):
 
     def remove(self, peer):
         self._peers.remove(peer)
-        self.broadcast('%s\tquit!\n\r' % (peer.global_name,))
+        print(datetime.datetime.now(),' - rawTcpServer.Client disconnected:')
+        # Is there a way to tell the driver that it is disconnected?
+##        self.broadcast('%s\tquit!\n\r' % (peer.global_name,))
 
     def broadcast(self, message):
 ##        print(list(self._peers))
+        print(datetime.datetime.now(),' - rawTcpServer: Passing message to All -- may not need')
         print("TCP Server: sending msg")
         print(message)
         for peer in self._peers:
             peer.send(message)
 
-##    def sendTo(self,
-    def relay(self, message, incomingSock):
-##        print(list(set(incomingSock)-set(self._peers)))
-        
-        for peer in self._peers:
-            if peer._sock != incomingSock:
-                peer.send(message)
+
+##    def relay(self, message, incomingSock):
+####        print(list(set(incomingSock)-set(self._peers)))
+##        
+##        for peer in self._peers:
+##            if peer._sock != incomingSock:
+##                peer.send(message)
 
     def passMsg(self, msg, peer_id):
+        print(datetime.datetime.now(),' - rawTcpServer: Passing message to TCP Client')
         msgOut = msg + '\n\r'
         for peer in self._peers:
             if peer.id == peer_id:
@@ -876,7 +492,7 @@ class rawTcpServer(object):
             
             # Extend handshake to driver_client
             print(datetime.datetime.now(),' - rawTcpServer : Handshake sent to driver')
-            self._translator.publish('com.opentrons.driver_handshake',self._translator.driverID,self._translator.id,'handshake','driver','message','extend')
+            self._translator.publish('com.opentrons.driver_handshake',self._translator.driverID,self._translator.id,'handshake','driver','extend','true')
 
             # Tell client that handshake has been initialized
             time_string = str(datetime.datetime.now())
@@ -886,41 +502,21 @@ class rawTcpServer(object):
             print(datetime.datetime.now(),' - rawTcpServer : TCP client sent initialization message')
             print(delimMsg.encode())
             peer.send(delimMsg)
-##            self.broadcast('%s\tconnected!\n\r' % (peer.global_name,))
-##            print(peer_name[0]=='127.0.0.1')
-            #print(peer_sock)
 
-### 
-
-##def main():
-##    loop = get_event_loop()
-##    relayServer = rawTcpServer(loop, 7887)
-##    loop.call_later(10,relayServer.broadcast,'test msg \n\r')
 
 
 if __name__ == '__main__':
 
     try:
 
-        
-##        loop.call_later(10,relayServer.broadcast,'test msg \n\r')
-##        loop.run_forever()
-        #session_factory = wamp.ApplicationSessionFactory()
-        #session_factory.session = WampComponent
-        #session_factory._myAppSession = None
-
-        #url = "ws://0.0.0.0:8080/ws"
-        #transport_factory = websocket.WampWebSocketClientFactory(session_factory,
-        #                                                        url=url,
-        #                                                        debug=False,
-        #                                                        debug_wamp=False)
-        #loop = asyncio.get_event_loop()
-
-        print('\nBEGIN INIT...\n')
-        loop = get_event_loop()
-        # TRYING THE FOLLOWING IN INSTANTIATE OBJECTS vs here
         # INITIAL SETUP
-        print(datetime.datetime.now(),' - INITIAL SETUP - publisher, harness, subscriber ','* * '*10)
+        print('\nBEGIN INIT...\n')
+
+        # get asyncio event loop
+        loop = get_event_loop()
+
+        
+        print(datetime.datetime.now(),' - INITIAL SETUP - Autobahn/Crossbar.io connection setup ','* * '*10)
         TCP_trans = TCPtranslator(loop)
 
         # START RAW TCP SERVER
@@ -930,122 +526,10 @@ if __name__ == '__main__':
         # point to relay server for TCP translator
         TCP_trans.relay = relayServer
 
-        # INSTANTIATE DRIVERS
-##        print(datetime.datetime.now(),' - INSTANTIATE DRIVERS - smoothie_driver ','* * '*10)
-##        smoothie_driver = SmoothieDriver(simulate=(os.environ.get('SMOOTHIE_SIMULATE', 'true')=='true'))
-
-
-        # ADD DRIVERS
-##        print(datetime.datetime.now(),' - ADD DRIVERS ','* * '*10)   
-##        driver_client.add_driver(driver_client.id,'','smoothie',smoothie_driver)
-##        print(driver_client.drivers(driver_client.id,'',None,None))
-
-
-        # DEFINE CALLBACKS
-        #
-        #   data_dict format:
-        #
-        #
-        #
-        #
-        #
-##        print(datetime.datetime.now(),' - DEFINE CALLBACKS ','* * '*10)
-##        def none(name, from_, session_id, data_dict):
-##            """
-##            """
-##            print(datetime.datetime.now(),' - driver_client.none:')
-##            print('\n\targs: ',locals(),'\n')
-##            dd_name = list(data_dict)[0]
-##            dd_value = data_dict[dd_name]
-##            driver_client.publish('frontend',from_,session_id,'driver',name,list(data_dict)[0],dd_value)
-##            if from_ != session_id:
-##                driver_client.publish(from_,from_,session_id,'driver',name,list(data_dict)[0],dd_value)
-##
-##        def positions(name, from_, session_id, data_dict):
-##            """
-##            """
-##            print(datetime.datetime.now(),' - driver_client.positions:')
-##            print('\n\targs: ',locals(),'\n')
-##            dd_name = list(data_dict)[0]
-##            dd_value = data_dict[dd_name]
-##            driver_client.publish('frontend',from_,session_id,'driver',name,list(data_dict)[0],dd_value)
-##            if from_ != session_id:
-##                driver_client.publish(from_,from_,session_id,'driver',name,list(data_dict)[0],dd_value)
-##
-##        def adjusted_pos(name, from_, session_id, data_dict):
-##            """
-##            """
-##            print(datetime.datetime.now(),' - driver_client.adjusted_pos:')
-##            print('\n\targs: ',locals(),'\n')
-##            dd_name = list(data_dict)[0]
-##            dd_value = data_dict[dd_name]
-##            driver_client.publish('frontend',from_,session_id,'driver',name,list(data_dict)[0],dd_value)
-##            if from_ != session_id:
-##                driver_client.publish(from_,from_,session_id,'driver',name,list(data_dict)[0],dd_value)
-##
-##        def smoothie_pos(name, from_, session_id, data_dict):
-##            """
-##            """
-##            print(datetime.datetime.now(),' - driver_client.smoothie_pos:')
-##            print('\n\targs: ',locals(),'\n')
-##            dd_name = list(data_dict)[0]
-##            dd_value = data_dict[dd_name]
-##            driver_client.publish('frontend',from_,session_id,'driver',name,list(data_dict)[0],dd_value)
-##            if from_ != session_id:
-##                driver_client.publish(from_,from_,session_id,'driver',name,list(data_dict)[0],dd_value)
-##
-##
-##
-##
-##        # ADD CALLBACKS
-##        print('*\t*\t* add callbacks via harness\t*\t*\t*')
-##        driver_client.add_callback(driver_client.id,'','smoothie', {none:['None']})
-##        driver_client.add_callback(driver_client.id,'','smoothie', {positions:['M114']})
-##        driver_client.add_callback(driver_client.id,'','smoothie', {adjusted_pos:['adjusted_pos']})
-##        driver_client.add_callback(driver_client.id,'','smoothie', {smoothie_pos:['smoothie_pos']})
-##
-##        for d in driver_client.drivers(driver_client.id,'',None,None):
-##            print (driver_client.callbacks(driver_client.id,'',d, None))
-##
-##
-##        # ADD METACALLBACKS
-##        print(datetime.datetime.now(),' - DEFINE AND ADD META-CALLBACKS ','* * '*10)
-##        def on_connect(from_,session_id):
-##            print(datetime.datetime.now(),' - driver_client.on_connect')
-##            print('\n\targs: ',locals(),'\n')
-##            driver_client.publish(from_,from_,session_id,'connect','driver','result','connected')
-##
-##        def on_disconnect(from_,session_id):
-##            print(datetime.datetime.now(),' - driver_client.on_disconnect')
-##            print('\n\targs: ',locals(),'\n')
-##            driver_client.publish(from_,from_,session_id,'connect','driver','result','disconnected')
-##
-##        def on_empty_queue(from_,session_id):
-##            print(datetime.datetime.now(),' - driver_client.on_empty_queue')
-##            print('\n\targs: ',locals(),'\n')
-##            driver_client.publish(from_,from_,session_id,'queue','driver','result','empty')
-##
-##        def on_raw_data(from_,session_id,data):
-##            print(datetime.datetime.now(),' - driver_client.on_raw_data')
-##            print('\n\targs: ',locals(),'\n')
-##            driver_client.publish(from_,from_,session_id,'raw','driver','data',data)
-##
-##
-##        driver_client.set_meta_callback(driver_client.id,'','smoothie',{'on_connect':on_connect})
-##        driver_client.set_meta_callback(driver_client.id,'','smoothie',{'on_disconnect':on_disconnect})
-##        driver_client.set_meta_callback(driver_client.id,'','smoothie',{'on_empty_queue':on_empty_queue})
-##        driver_client.set_meta_callback(driver_client.id,'','smoothie',{'on_raw_data':on_raw_data})
-##
-##        # CONNECT TO DRIVERS:
-##        print(datetime.datetime.now(),' - CONNECT TO DRIVERS ','* * '*10)
-##        driver_client.driver_connect(driver_client.id,'','smoothie',None)
-
         print('END INIT')
 
-##        TCP_trans.connect(
-##            url_domain=os.environ.get('CROSSBAR_HOST', '0.0.0.0'),
-##            url_port=int(os.environ.get('CROSSBAR_PORT', '8080'))
-##            )
+
+        print(datetime.datetime.now(),' - Connect to crossbar.io ','* * '*10)
         TCP_trans.connect(
             url_domain= '0.0.0.0',
             url_port=8080
@@ -1055,8 +539,6 @@ if __name__ == '__main__':
         pass
     finally:
         print('disconnect')
-##        for peer in relayServer._peers:
-##            peer.translator.disconnect()
         TCP_trans.disconnect()
         print('ALL DONE!')
 
